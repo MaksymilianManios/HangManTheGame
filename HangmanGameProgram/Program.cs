@@ -1,60 +1,101 @@
 ﻿using System;
+using System.Linq;
+using System.Numerics;
 
 namespace HangmanGameProgram
 {
     class Program
     {
-        public const int LivesNumber = 5;
-        class GameValues
+        //######################################### Const
+        public const int GameLivesNumber = 5;
+        //######################################### Password class
+        class Password
         {
-            private char[] Password;
-            private char[] ShownFraze;
-            private int LivesCount;
-            private char[] LittersUsed;
+            private String HiddenPassword, AlreadyGuessed;
+            private int lives;
+            public char[] ShownPasword;
 
-            public GameValues()
+            public Boolean IsAlive()
             {
-                LivesCount = LivesNumber;
-                Random rand = new Random((int)DateTime.Now.Ticks);
-                string[] Words = { "duda", "rower", "palidrom" };
-                
+                return lives > 0 ? true : false;
+            }
+            public int GetLives()
+            {
+                return lives;
+            }
+            public void Guess(Char LetterGuessed)
+            {
+                LetterGuessed = Char.ToUpper(LetterGuessed);
+                foreach (char letter in AlreadyGuessed)
+                {
+                    if (LetterGuessed == letter)
+                    {
+                        return;
+                    }
+                }
+                Boolean IsPresent = false;
+                for (int index = 0; index < HiddenPassword.Length; index++)
+                {
+                    if (LetterGuessed == HiddenPassword[index])
+                    {
+                        ShownPasword[index] = LetterGuessed;
+                        IsPresent = true;
+                    }
+                }
+
+                AlreadyGuessed += LetterGuessed;
+                if (!IsPresent) { lives--; }
             }
 
-            public char[] GetPassword() { return Password; }
-            public char[] GetShownFraze() { return ShownFraze; }
-            public char[] GetLittersUsed() { return LittersUsed; }
-            public int GetLivesCount() { return LivesCount; }
+            public void PrintGame()
+            {
+                String buff = "";
+                foreach (char c in ShownPasword)
+                {
+                    buff += c;
+                }
+                Console.WriteLine("Password status : {0} \nLitters guessed : {1} \nLives : " + GetLives() + "/" + GameLivesNumber, buff, AlreadyGuessed);
+            }
+
+            public Password(String password)
+            {
+                password = password.ToUpper();
+                lives = GameLivesNumber;
+                AlreadyGuessed = "";
+                ShownPasword = new char[password.Length];
+                foreach (char LetterInPassword in password)
+                {
+                    HiddenPassword += LetterInPassword;
+                    ShownPasword[HiddenPassword.Length - 1] = '_';
+                }
+            }
         };
-        static bool IsPresent(char Litter,Char[] Pasword) // czy taka litera jest w hasle?
+        //######################################### Random string
+        public static string GetPassword()
         {
-            for(int i = 0; i < Pasword.Length; i++)
-            {
-                if (Pasword[i] == Litter)
-                {
-                    return true;
-                }
-            }
-            return false;
+            Random rand = new Random((int)DateTime.Now.Ticks);
+            string[] Words = { "samochod", "kwiatek", "palidrom" , "pumpernikiel","cppjestmoimulubionymjezykiemijestemswiadommojejglupoty"};
+            return Words[rand.Next(0, Words.Length)];
         }
-        static int RefreshPasword(char[] Password,char[] ShownFraze,char Litter,int lives)
-        {
-            if(Password.Length != ShownFraze.Length) { return 1; }
 
-            if (IsPresent(Litter, Password))
-            {
-                for(int i = 0; i < Password.Length; i++)
-                {
-                    if(Password[i] == Litter) { ShownFraze[i] = Litter; }
-                }
-            }
-            else
-            {
-
-            }
-        }
+        //######################################### Main
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            Password p = new Password(GetPassword());
+
+            while (p.IsAlive())
+            {
+                p.PrintGame();
+                try
+                {
+                    p.Guess(Console.ReadLine()[0]);
+                }
+                catch (System.IndexOutOfRangeException)
+                {
+
+                }
+            }
         }
     }
 }
+            
